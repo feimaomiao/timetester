@@ -33,17 +33,19 @@ class tester():
         self.function   = method
         try:
             self.runtime        = int(runtime)
-            self.target         = int(target)
-            self.maxtime        = int(maxtime)
+            self.target         = dec(target)
+            self.maxtime        = dec(maxtime)
+            # error time must be at least 1 seconds
             self.error_time     = int(error_time)
             self.__average      = []
             self.type           = return_type
             self.__errorEncd    = 0
             self.__totalruntime = 0
+            self.__runs         = 0
         except TypeError:
             print('runtime, maxtime and errortime must be int')
             raise
-        if runtime<=0 or target<=0 or maxtime<=0 or error_time<=0:
+        if runtime<=0 or target<=0 or maxtime<=0 or error_time<0:
             raise timeTesterError('runtime, target, maxtime and errortime cannot be smaller than 0')
         if maxtime<self.error_time:
             raise timeTesterError('maxtime must be larger than error time!')
@@ -66,9 +68,10 @@ class tester():
         def __raise_error(signum, frame):
             raise TimeoutError(f'Testrun #{i} took longer than selected time to respond.')
 
+        self.__runs += self.runtime
         beginning_time = time.time()
         for i in range(self.runtime):
-            starttime= time.time()
+            __starttime= time.time()
             signal.signal(signal.SIGALRM, __raise_error)
             try:
                 signal.alarm(self.error_time)
@@ -81,17 +84,17 @@ class tester():
                 self.__errorEncd += 1
                 signal.alarm(0)
                 raise
-            run_time = time.time()-starttime
-            if run_time >= self.maxtime:
+            __runtime_o = dec(time.time()-__starttime)
+            if __runtime_o >= self.maxtime:
                 self.__errorEncd
                 raise TimeoutError('Tests took longer than expected!')
-            self.__average.append(run_time)
-            del starttime, run_time
+            self.__average.append(__runtime_o)
+            del __starttime, __runtime_o
         self.__totalruntime += (beginning_time - time.time())
 
     def report(self):
         returnString = f'''\
-Expected runs       : {self.runtime}
+Expected runs       : {self.__runs}
 Target              : {self.target}
 Maximum time        : {self.maxtime}(Total), {self.error_time}(Single run)
 Successful runs     : {len(self.__average)}
@@ -102,8 +105,7 @@ Median time         : {str(dec(st.median(self.__average)))}
 Mode time           : {str(dec(st.median(self.__average)))}
 Harmonic mean time  : {str(dec(st.harmonic_mean(self.__average)))}
 Meeting Target      : {True if dec(st.mean(self.__average))< self.target else False}
-To target(mean)     : {abs(self.target-dec(st.mean(self.__average)))}
-'''
+To target(mean)     : {abs(self.target-dec(st.mean(self.__average)))}'''
         return returnString
 
 
