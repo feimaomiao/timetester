@@ -6,6 +6,11 @@ from errno import ETIME
 import os
 from decimal import Decimal as dec
 
+def test_function_delete_later():
+    import random, string
+    password_characters = string.ascii_letters + string.digits
+    return ''.join(random.choice(password_characters) for i in range(random.randrange(15,20)))
+
 class timeTesterError(Exception):
     pass
 
@@ -42,6 +47,7 @@ class tester():
             self.__errorEncd    = 0
             self.__totalruntime = 0
             self.__runs         = 0
+            self.averagelistdel = []
         except TypeError:
             print('runtime, maxtime and errortime must be int')
             raise
@@ -91,6 +97,18 @@ class tester():
             self.__average.append(__runtime_o)
             del __starttime, __runtime_o
         self.__totalruntime += (beginning_time - time.time())
+        self.averagelistdel = self.__average
+
+    def show_plot(self):
+        try:
+            from matplotlib import pyplot as plt
+        except ImportError:
+            print('Please make sure you have matplotlib module downloaded from pip!')
+            return
+        plt.plot([x for x in range(len(self.__average))], self.__average, color = 'darkblue', linewidth=1)
+        plt.show()
+
+
 
     def report(self):
         returnString = f'''\
@@ -103,9 +121,18 @@ repr type           : {self.type}
 Mean time           : {str(dec(st.mean(self.__average)))}
 Median time         : {str(dec(st.median(self.__average)))}
 Mode time           : {str(dec(st.median(self.__average)))}
+Mode time appearance: {self.__average.count(dec(st.median(self.__average)))}
 Harmonic mean time  : {str(dec(st.harmonic_mean(self.__average)))}
 Meeting Target      : {True if dec(st.mean(self.__average))< self.target else False}
-To target(mean)     : {abs(self.target-dec(st.mean(self.__average)))}'''
+To target(mean)(abs): {-abs(self.target-dec(st.mean(self.__average)))}
+To target           : {self.target-dec(st.mean(self.__average))}
+Max time in run     : {max(self.__average)}
+Max time index      : {self.__average.index(max(self.__average))}
+Max time appearance : {self.__average.count(max(self.__average))}
+Min time in run     : {min(self.__average)}
+Min time index      : {self.__average.index(min(self.__average))}
+Min time appearance : {self.__average.count(min(self.__average))}
+'''
         return returnString
 
 
