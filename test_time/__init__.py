@@ -52,7 +52,6 @@ class tester():
             self.__errorEncd    = 0
             self.__totalruntime = 0
             self.__runs         = 0
-            self.averagelistdel = []
         except TypeError:
             print('runtime, maxtime and errortime must be int')
             raise
@@ -89,14 +88,17 @@ class tester():
                 self.function(*args,**kwargs)
                 signal.alarm(0)
             except TimeoutError:
+                self.__totalruntime += (beginning_time - time.time())
                 self.__errorEncd += 1
                 raise
             except Exception as e:
+                self.__totalruntime += (beginning_time - time.time())
                 self.__errorEncd += 1
                 signal.alarm(0)
                 raise
             __runtime_o = dec(time.time()-__starttime)
             if __runtime_o >= self.maxtime:
+                self.__totalruntime += (beginning_time - time.time())
                 self.__errorEncd += 1
                 raise TimeoutError('Tests took longer than expected!')
             self.__average.append(__runtime_o)
@@ -104,7 +106,7 @@ class tester():
         self.__totalruntime += (beginning_time - time.time())
         self.averagelistdel = self.__average
 
-    def show_plot(self):
+    def graph(self):
         try:
             from matplotlib import pyplot as plt
         except ImportError:
@@ -112,12 +114,15 @@ class tester():
             return
         if self.__errorEncd >0:
             raise timeTesterError('Please make sure no error is encountered before actually showing the test time')
+        if len(self.__average) ==0:
+            raise timeTesterError('Please run tests before plotting the results!')
         plt.plot([x for x in range(len(self.__average))], self.__average, color = 'darkblue', linewidth=1, label="Actual time")
         actualaverage = st.mode(self.__average) if self.type == 'mode' else st.median(self.__average) if self.type == 'median' else st.mean(self.__average)
-        plt.plot([x for x in range(len(self.__average))], [actualaverage for x in range(len(self.__average))], color='green',linewidth=1, label="average")
+        plt.plot([x for x in range(len(self.__average))], [actualaverage for x in range(len(self.__average))], color='green',linewidth=1, label=f"{self.type}average")
         plt.legend()
         plt.xlabel('Times')
         plt.ylabel('Seconds')
+        plt.xlim=(0,len(self.__average)*1.01)
         ylimit = 1.5*float(self.target) if self.target<max(self.__average) else float(max(self.__average)) if max(self.__average)< st.median(self.__average) * 3 else float(st.median(self.__average)) * 3
         plt.plot([x for x in range(len(self.__average))], [self.target for x in range(len(self.__average))], color='red', linewidth=1, label="target time") if self.target<= ylimit else None
         print(ylimit)
@@ -133,6 +138,7 @@ Expected runs       : {self.__runs}
 Target              : {self.target}
 Maximum time        : {self.maxtime}(Total), {self.error_time}(Single run)
 Successful runs     : {len(self.__average)}
+Total time elapsed  : {self.__totalruntime}
 Total errors        : {self.__errorEncd}
 repr type           : {self.type}
 Mean time           : {str(dec(st.mean(self.__average)))}
