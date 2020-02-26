@@ -5,6 +5,8 @@ from functools import wraps
 from errno import ETIME
 import os
 from decimal import Decimal as dec
+import io
+import sys
 import random, string
 class timeTesterError(Exception):
     pass
@@ -18,10 +20,10 @@ def test_function_2():
         raise timeTesterError
     return
 
-
+# useful function obviously copied online
 def timeout(seconds=10, error_message=os.strerror(ETIME)):
     def decorator(func):
-        if not seconds:
+        if not bool(seconds):
             return func
         def _handle_timeout(signum, frame):
             raise TimeoutError(error_message)
@@ -39,12 +41,13 @@ def timeout(seconds=10, error_message=os.strerror(ETIME)):
     return decorator
 
 class tester():
-    def __init__(self, method ,target=1,runtime=100, maxtime=10, error_time=0, return_type = 'mean'):
+    def __init__(self, method ,target=1,print_output = False,runtime=100, maxtime=10, error_time=0, return_type = 'mean'):
         self.function   = method
         try:
             self.runtime        = int(runtime)
             self.target         = dec(target)
             self.maxtime        = dec(maxtime)
+            self.echo_result    = bool(print_output)
             # error time must be at least 1 seconds
             self.error_time     = int(error_time)
             self.__average      = []
@@ -77,7 +80,9 @@ class tester():
     def run_tests(self, *args, **kwargs):
         def __raise_error(signum, frame):
             raise TimeoutError(f'Testrun #{i} took longer than selected time to respond.')
-
+        if not self.echo_result:
+            text_trap = io.StringIO()
+            sys.stdout = text_trap
         self.__runs += self.runtime
         beginning_time = time.time()
         for i in range(self.runtime):
@@ -88,23 +93,28 @@ class tester():
                 self.function(*args,**kwargs)
                 signal.alarm(0)
             except TimeoutError:
-                self.__totalruntime += (beginning_time - time.time())
+                sys.stdout = sys.__stdout__
+                self.__totalruntime += (time.time()- beginning_time)
                 self.__errorEncd += 1
                 raise
             except Exception as e:
-                self.__totalruntime += (beginning_time - time.time())
+                sys.stdout = sys.__stdout__
+                self.__totalruntime += (time.time()- beginning_time)
                 self.__errorEncd += 1
                 signal.alarm(0)
                 raise
             __runtime_o = dec(time.time()-__starttime)
             if __runtime_o >= self.maxtime:
-                self.__totalruntime += (beginning_time - time.time())
+                self.__totalruntime += (time.time()- beginning_time)
                 self.__errorEncd += 1
+                sys.stdout = sys.__stdout__
                 raise TimeoutError('Tests took longer than expected!')
             self.__average.append(__runtime_o)
             del __starttime, __runtime_o
-        self.__totalruntime += (beginning_time - time.time())
+        self.__totalruntime += (time.time()- beginning_time)
         self.averagelistdel = self.__average
+        sys.stdout = sys.__stdout__
+        return
 
     def graph(self):
         try:
@@ -118,17 +128,17 @@ class tester():
             raise timeTesterError('Please run tests before plotting the results!')
         plt.plot([x for x in range(len(self.__average))], self.__average, color = 'darkblue', linewidth=1, label="Actual time")
         actualaverage = st.mode(self.__average) if self.type == 'mode' else st.median(self.__average) if self.type == 'median' else st.mean(self.__average)
-        plt.plot([x for x in range(len(self.__average))], [actualaverage for x in range(len(self.__average))], color='green',linewidth=1, label=f"{self.type}average")
-        plt.legend()
+        plt.plot([x for x in range(len(self.__average))], [actualaverage for x in range(len(self.__average))], color='green',linewidth=1, label=f"{self.type} average")
         plt.xlabel('Times')
         plt.ylabel('Seconds')
         plt.xlim=(0,len(self.__average)*1.01)
         ylimit = 1.5*float(self.target) if self.target<max(self.__average) else float(max(self.__average)) if max(self.__average)< st.median(self.__average) * 3 else float(st.median(self.__average)) * 3
         plt.plot([x for x in range(len(self.__average))], [self.target for x in range(len(self.__average))], color='red', linewidth=1, label="target time") if self.target<= ylimit else None
-        print(ylimit)
         plt.ylim(0, ylimit)
         plt.title('Average time')
+        plt.legend()
         plt.show()
+        return plt.close()
 
 
 
@@ -136,7 +146,7 @@ class tester():
         returnString = f'''\
 Expected runs       : {self.__runs}
 Target              : {self.target}
-Maximum time        : {self.maxtime}(Total), {self.error_time}(Single run)
+Maximum time        : {round(self.maxtime, 15)}(Total), {self.error_time}(Single run)
 Successful runs     : {len(self.__average)}
 Total time elapsed  : {self.__totalruntime}
 Total errors        : {self.__errorEncd}
