@@ -8,7 +8,8 @@ from decimal import Decimal as dec
 import io
 import sys
 import json
-import random, string
+import random
+import json
 
 
 # Main error raised in test_time
@@ -96,7 +97,7 @@ class timeTester():
     #     k.runtests(args, kwargs)
     # Both positional and required args can be provided
 
-    # Functino that raises error
+    # Function that raises error
         def __raise_error(signum, frame):
             raise TimeoutError(f'Testrun #{i} took longer than selected time to respond.')
 
@@ -110,7 +111,7 @@ class timeTester():
         except ValueError:
             raise timeTesterError('Please make sure the variables are assigned properly') from ValueError
 
-        # redirects stdout to a texttrap if user decides not to print outputs
+        # redirects stdout to a text trap if user decides not to print outputs
         if not self.echo_result:
             text_trap = io.StringIO()
             sys.stdout = text_trap
@@ -255,6 +256,7 @@ class compare():
     # All args should be functions
     def __init__(self, *args):
         args= list(args)
+        # Set variables
         self.speedtime      = {}
         self.looptime       = 2
         self.runtime        = 50
@@ -264,9 +266,10 @@ class compare():
         self.__amount       = len(args)
         self.__methods      = args
         self.__averages     = {}
+        self.__encErr       = False
+        # Check if arguments have __name__ attribute
         try:
             for i in self.__methods:
-                print(i.__name__)
                 self.speedtime[i.__name__] = 0
                 self.__averages[i.__name__] = []
         except AttributeError:
@@ -274,51 +277,100 @@ class compare():
                 raise timeTesterError(f'{i.__repr__()} does not have a __name__ attribute') from AttributeError
             except AttributeError:
                 raise timeTesterError(f'I dont know what {i} is') from AttributeError
+        # Check if there are 2 functions given
         if self.__amount<2:
             raise timeTesterError('Compare requires at least 2 functions')
+        # Check if more than one same function is provided
         elif len(self.speedtime)< len(args):
             raise timeTesterError('Function is provided more than once')
+        # Check if i is is a function
         else:
             for i in self.__methods:
                 if not callable(i):
                     raise timeTesterError(f'{i} is not a function')
 
+    # String that is returned if print(object) is stated
     def __repr__(self):
         return str(self.speedtime)
 
-    def meanfunc(self, ll):
+    # Restart 
+    def initialise(self):
+        # Empty dictionary
+        for i in self.__methods:
+            self.speedtime[i.__name__] = 0
+            self.__averages[i.__name__] = []
+        self.looptime       = 2
+        self.runtime        = 50
+        self.errortime      = 0 
+        self.print          = False
+        self.meantype       ='harmonimean'
+        self.__averages     = {}
+        self.__encErr       = False
+        return 
+
+
+    # Check and return the mean function.
+    def __meanfunc(self, ll):
         l = {'mode': st.mode, 'median': st.median, 'harmonicmean':st.harmonic_mean, 'geometricmean':st.geometric_mean}
         return lambda: l.get(self.meantype, st.mean)(ll)
 
+   # Run compare functions
     def compareFuncs(self, *args, **kwargs):
+        self.__encErr = False
         for i in self.speedtime:
             self.speedtime[i] = 0
         try:
+            # Check if values are initialised correctly
             self.runtime    = int(self.runtime)
             self.looptime   = int(self.looptime) 
             self.print      = bool(self.print)
+        # ValueError is derived if the value is not an intended value
         except ValueError:
+            self.__encErr = True
             raise timeTesterError('Please make sure your variables are set correspondingly') from ValueError
+        # Runs for looptime times
         for runs in range(self.looptime):
             for funcs in self.__methods:
+                # Create methodtime object
+                methodtime = timeTester(funcs, runtime=self.runtime, return_type=self.meantype, print_output=self.print, error_time=self.errortime)
+                try:
+                    # runtests
+                    methodtime.runtests(args, kwargs)
+                except Exception as e:
+                    # Either timetesterError or error the function itself raised
+                    for i in self.speedtime:
+                        self.speedtime[i] =0 
+                    # Set variable encountered error to true
+                    self.__encErr = True
+                    raise
+                # appends speedtime to both averages and add to average
+                self.speedtime[funcs.__name__] += float(methodtime.__repr__())
+                self.__averages[funcs.__name__].append(float(methodtime.__repr__()))
+            # Reverse call to eliminate call time differences
+            for funcs in reversed(self.__methods):
                 methodtime = timeTester(funcs, runtime=self.runtime, return_type=self.meantype, print_output=self.print, error_time=self.errortime)
                 try:
                     methodtime.runtests(*args, **kwargs)
                 except Exception as e:
                     for i in self.speedtime:
                         self.speedtime[i] =0 
+                    self.__encErr = True
                     raise
                 self.speedtime[funcs.__name__] += float(methodtime.__repr__())
                 self.__averages[funcs.__name__].append(float(methodtime.__repr__()))
+        # Add time to dictionary
         for r in self.speedtime:
-            self.speedtime[r] = self.meanfunc([self.speedtime[r] for i in range(self.looptime)])()
+            self.speedtime[r] = self.__meanfunc([self.speedtime[r] for i in range(self.looptime)])()
         self.speedtime = {k: v for k, v in sorted(self.speedtime.items(), key=lambda item: item[1])}
+        # returns the fastest function
         return list(self.speedtime.keys())[0]
 
-    def output_asfile(self):
+    def output_as_file(self):
+        # Outputs file as json
+        if self.__encErr:
+            raise timeTesterError('You have an error encountered')
         if any([x == 0 for x in self.speedtime.values()]):
             raise timeTesterError('Please run tests before outputing as file')
-        import json
         json.dump(self.speedtime, open('timetest_report.json', 'w'))
         return self.speedtime
 
@@ -328,43 +380,17 @@ class compare():
             from matplotlib import pyplot as plt
         except (ImportError, ModuleNotFoundError) as e:
             raise timeTesterError('Module matplotlib is not imported in pip') 
+        if self.__encErr:
+            raise timeTesterError('You have an error encountered')
         if any([len(x) == 0 for x in self.__averages]):
             raise timeTesterError('Please run compare before graphing!')
+        # Empty plot
         plt.clf()
-        for i in self.__averages:
-            plt.plot([x for x in range(len(self.__averages[i]))], self.__averages[i], linewidth=1, label=str(i), color=random.choice(['blue','red','green','darkblue','black']))
+        for count, i in enumerate(self.__averages):
+            # Plot times
+            plt.plot([x for x in range(len(self.__averages[i]))], self.__averages[i], linewidth=1, label=str(i), color=['blue','red','green','darkblue','black','brown','darkorange','lawngreen','cyan','dodgerblue','blueviolet','hotpink'][count % 12])
         plt.title('Average time')
         plt.legend()
         plt.show()
         # close window and return
         return plt.close()
-
-
-def test_fund(*args):
-    print(args)
-    return
-
-def test_func(*args):
-    print(args)
-    return
-
-def test_fune(*args):
-    print(args)
-    return
-
-def test_funf(*args):
-    print(args)
-    return
-
-
-
-
-
-
-
-
-
-            
-
-
-
