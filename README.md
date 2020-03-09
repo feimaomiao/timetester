@@ -42,3 +42,35 @@ k.output_asfile()
 k.initialise()
 ```
 
+## Options
+- Timetester object:
+	- target(decimal/int)
+	> The target time you want the function to be at 
+```Python
+import timetester
+
+def foo(arg):
+	pass
+
+k = timetester.timeTester(foo,target=0.005)
+# or
+k.target =0.05
+```
+	- print_output(bool)
+	> disable all `print` function inside the provided function.
+```Python
+import timetester
+
+def foo(arg):
+	print(arg)
+
+k= timetester.timeTester(foo, print_output=False)
+# Even though the function is intended to print arguments, no output will be printed during run tests
+k.runtests('hi','bye')
+# After runtests print functions will be normal.
+print('hi')
+```
+	- maxtime
+	> Maximum time all functions would run
+
+
