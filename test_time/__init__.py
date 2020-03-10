@@ -5,7 +5,6 @@ from functools import wraps
 from errno import ETIME
 import os
 from decimal import Decimal as dec
-# import sys
 from sys import stdout, __stdout__
 import json
 import random
@@ -92,29 +91,42 @@ class timeTester():
 
     def __eq__(self, other):
         if not isinstance(other, (timeTester, int, float, dec)):
-            raise timeTesterError('Other is not timeTester, int or float!')
+            raise timeTesterError('Other should be timeTester, int or float!')
         try:
             if self.__runs==0 or other.__runs == 0:
                 raise timeTesterError('One of the objects has not been tested!')
         except AttributeError:
             pass
-        return dec(self.__repr__()) == dec(other.__repr__())
+        return round(dec(self.__repr__()),6) == round(dec(other.__repr__()),6)
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def __cmp__(self,other):
-        if not isinstance(other, (timeTester, int, float,dec)):
-            raise timeTesterError('Other is not timeTester, int or float!')
+    def __lt__(self,other):
+        if not isinstance(other, (timeTester, int, float, dec)):
+            raise timeTesterError('Other should be timeTester, int or float!')
         try:
-            if self.__runs == 0 or other.__runs ==0:
+            if self.__runs==0 or other.__runs == 0:
                 raise timeTesterError('One of the objects has not been tested!')
         except AttributeError:
             pass
-        # return dec(self.__repr__())
+        return round(dec(self.__repr__()),6)< round(dec(other.__repr__()),6)
 
+    def __gt__(self,other):
+        if not isinstance(other, (timeTester, int, float, dec)):
+            raise timeTesterError('Other should be timeTester, int or float!')
+        try:
+            if self.__runs==0 or other.__runs == 0:
+                raise timeTesterError('One of the objects has not been tested!')
+        except AttributeError:
+            pass
+        return round(dec(self.__repr__()),6)> round(dec(other.__repr__()),6)
 
+    def __ge__(self, other):
+        return not self.__lt__(other)
 
+    def __le__(self,other):
+        return not self.__gt__(other)
 
     def runtests(self, *args, **kwargs):
         # Run tests for said function.
