@@ -3,8 +3,7 @@ __pycache__/
 /*/__pycache__
 *.py[cod]
 *$py.class
-test_time/time*
-test_time/testerfunctions.py
+timetester/testerfunctions.py
 # C extensions
 *.so
 
