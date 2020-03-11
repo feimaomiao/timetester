@@ -9,8 +9,8 @@ Easy to use Python package to test a functions runtime
 import timetester
 
 def foo(arg):
-	print(arg)
-	pass
+    print(arg)
+    pass
 
 k = timetester.timeTester(foo)
 # NOT NECESSARY. Only use if you encountered an error and reloaded the object
@@ -30,17 +30,17 @@ import time
 # Raises error
 @timetester.timeout(10)
 def foo(bar):
-	time.sleep(11)
+    time.sleep(11)
 ```
 - Compare object
 ```python
 import timetester
 
 def foo():
-	pass
+    pass
 
 def bar():
-	pass
+    pass
 
 k= timetester.compare(foo,bar)
 # NOT NECESSARY. Only use if you encountered an error and reloaded the function
@@ -61,10 +61,10 @@ k.sort()
 import timetester
 
 def foo(args):
-	pass
+    pass
 
 def bar(args):
-	pass
+    pass
 
 # Allowed
 timetester.timeTester(foo).initialise().runtests().graph().report()
@@ -83,12 +83,12 @@ timetester.compare(foo,bar).graph().sort()
 ```python
 import timetester
 def foo():
-	pass
+    pass
 
 def bar():
-	pass
+    pass
 
-@timetester.timeout(seconds=10,error_message=os.strerror(errno.ETIME))	
+@timetester.timeout(seconds=10,error_message=os.strerror(errno.ETIME))  
 
 k= timetester.timeTester(foo, target=1, print_output=False,runtime=100,maxtime=10,error_time=0,return_type='mean)
 
@@ -101,12 +101,12 @@ c = timetester.compare(foo,bar)
 
 ## timeTester object options
 - target(float/int)
-	> The target time you want the function to be at 
+    > The target time you want the function to be at 
 ```Python
 import timetester
 
 def foo(arg):
-	pass
+    pass
 
 k = timetester.timeTester(foo,target=0.005)
 # or
@@ -119,7 +119,7 @@ k.target =0.05
 import timetester
 
 def foo(arg):
-	pass
+    pass
 
 k= timetester.timeTester(foo, runtime=100)
 # or 
@@ -127,12 +127,12 @@ k.runtime = 100
 ```
 ----
 - print_output(bool)
-	> disable all `print` function inside the provided function.
+    > disable all `print` function inside the provided function.
 ```Python
 import timetester
 
 def foo(arg):
-	print(arg)
+    print(arg)
 
 k= timetester.timeTester(foo, print_output=False)
 # or
@@ -144,13 +144,13 @@ print('hi')
 ```
   - - --
 - maxtime(int/float)
-	> Maximum time all functions would run
+    > Maximum time all functions would run
   
 ```python
 import timetester
 
 def foo(arg):
-	sleep(1)
+    sleep(1)
 
 k=timetester.timeTester(foo,maxtime=1)
 # or
@@ -174,7 +174,7 @@ Types of possible values include:
 import timetester
 
 def foo(arg):
-	pass
+    pass
 
 k= timetester.timeTester(foo,return_type='geometricmean')
 # or
@@ -189,18 +189,18 @@ import timetester
 from decimal import Decimal
 
 def foo(args):
-	pass
-	
+    pass
+    
 k=timetester.timeTester(foo)
 k.runtests()
 ```
 <sub>Lets say the return value of k (k.\_\_repr__()) is 0.1</sub>
 ```python
-k==0.1 				# True(float)
-k<1 				# True(int)
-k>=Decimal(0.0001) 	# True(Decimal object)
-k==0.002 			# False(float)
-k>1					# False(int)
+k==0.1              # True(float)
+k<1                 # True(int)
+k>=Decimal(0.0001)  # True(Decimal object)
+k==0.002            # False(float)
+k>1                 # False(int)
 k<=Decimal(0.00001) # False(Decimal object)
 ```  
 ## Compare object options
@@ -210,9 +210,9 @@ So let's say this is the initial code:
 ```python
 import timetester
 def foo():
-	pass
+    pass
 def bar():
-	pass
+    pass
 k=timetester.compare(foo,bar)
 ```
 ----
