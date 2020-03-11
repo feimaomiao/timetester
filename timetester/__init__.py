@@ -344,7 +344,6 @@ class compare():
         self.errortime      = 0
         self.print          = False
         self.meantype       ='harmonimean'
-        self.__averages     = {}
         self.__encErr       = False
         return self
 
