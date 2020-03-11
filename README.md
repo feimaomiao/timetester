@@ -1,5 +1,6 @@
 
-# test_time
+
+# timetester
 Easy to use Python package to test a functions runtime
 
 ## Usage
@@ -8,13 +9,18 @@ Easy to use Python package to test a functions runtime
 import timetester
 
 def foo(arg):
+	print(arg)
 	pass
 
 k = timetester.timeTester(foo)
+# NOT NECESSARY. Only use if you encountered an error and reloaded the object
 k.initialise()
-k.runtests()
+# Run tests
+k.runtests(*args,**kwargs)
+# Graph the average time taken
 k.graph()
-print(k.report())
+# Print a report of how the function did
+k.report()
 ```
 - Timeout Decorator
 ```python
@@ -25,7 +31,6 @@ import time
 @timetester.timeout(10)
 def foo(bar):
 	time.sleep(11)
-
 ```
 - Compare object
 ```python
@@ -38,10 +43,41 @@ def bar():
 	pass
 
 k= timetester.compare(foo,bar)
-k.compareFuncs()
-k.graph()
-k.output_asfile()
+# NOT NECESSARY. Only use if you encountered an error and reloaded the function
 k.initialise()
+# Arguments are passed in here
+k.compareFuncs(*args,**kwargs)
+# Outputs a graph comparing the time
+k.graph()
+# Creates a json file consising of the time took for each function to run
+k.output_asfile()
+# Prints each function on the screen
+k.sort()
+```
+- Usage in Real-Time IDE(Terminal)
+>  Joining of functions are generally allowed for timeTester object
+>  However, you have to run the actual test function first
+```python
+import timetester
+
+def foo(args):
+	pass
+
+def bar(args):
+	pass
+
+# Allowed
+timetester.timeTester(foo).initialise().runtests().graph().report()
+timetester.timeTester(foo).runtests().graph().report()
+timetester.compare(foo,bar).initialise().compareFuncs().graph().sort().output_asfile()
+timetester.compare(foo,bar).compareFuncs().output_asfile().graph()
+
+# Not allowed -- You have to run tests first
+timetester.timeTester(foo).graph().report()
+timetester.timeTester(foo).report()
+timetester.compare(foo,bar).initialise().graph().sort().output_asfile()
+timetester.compare(foo,bar).graph().sort()
+
 ```
 ## Default options
 ```python
@@ -157,8 +193,89 @@ def foo(args):
 	
 k=timetester.timeTester(foo)
 k.runtests()
-# Lets say the return value of k (k.__repr__()) is 0.1
-k==0.1 				# True
-k<1 				# True
-k>=Decimal(0.0001) 	# True
+```
+<sub>Lets say the return value of k (k.\_\_repr__()) is 0.1</sub>
+```python
+k==0.1 				# True(float)
+k<1 				# True(int)
+k>=Decimal(0.0001) 	# True(Decimal object)
+k==0.002 			# False(float)
+k>1					# False(int)
+k<=Decimal(0.00001) # False(Decimal object)
 ```  
+## Compare object options
+- When creating the object,  the arguments must all be functions
+- Variables can only be changed later  
+So let's say this is the initial code:  
+```python
+import timetester
+def foo():
+	pass
+def bar():
+	pass
+k=timetester.compare(foo,bar)
+```
+----
+- looptime(int)
+> Changes how many 'loops' would be ran everytime compareFuncs() would return
+```python
+# Default
+k.looptime
+>>2
+# Change
+k.looptime = 10
+setattr(k, 'looptime',10)
+# Restart
+k.initialise()
+```
+----
+- runtime(int)
+> Acts like timeTester.runtime option
+```python
+# Default
+k.runtime
+>>50
+# Change
+k.runtime=100
+setattr(k, 'looptime',100)
+# Restart
+k.initialise()
+```
+----
+- errortime(int,float, decimal.Decimal object)
+> Acts as timetester.error_time option
+```python
+# Default
+k.errortime
+>>0 # off
+# Change
+k.errortime = 0.0001
+setattr(k,'errortime',0.0001)
+# Restart
+k.initialise()
+```
+----
+- print(bool)
+> Acts as the timetester.print_output option
+```python
+# Default
+k.print
+>>False
+# Change
+k.print = False
+setattr(k, 'print',False)
+# Restart
+k.initialise()
+```
+- meantype(string)
+> Acts as the timetester.type option
+```python
+# Default
+k.meantype
+>>'harmonicmean'
+# Change
+k.meantype = 'median'
+setattr(k, 'meantype','median')
+# Restart
+k.initialise()
+```
