@@ -5,6 +5,7 @@ __pycache__/
 *$py.class
 timetester/testerfunctions.py
 timetester/time*
+.DS_Store
 # C extensions
 *.so
 

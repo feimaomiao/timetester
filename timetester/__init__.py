@@ -343,7 +343,7 @@ class compare():
         self.runtime        = 50
         self.errortime      = 0
         self.print          = False
-        self.meantype       ='harmonimean'
+        self.meantype       ='harmonicmean'
         self.__encErr       = False
         return self
 

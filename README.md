@@ -1,7 +1,6 @@
 
-
 # timetester
-Easy to use Python package to test a functions runtime
+Feed it a method and it tells you the average time.
 
 ## Usage
 - Timetester Object
@@ -33,6 +32,7 @@ def foo(bar):
     time.sleep(11)
 ```
 - Compare object
+> The compared functions should have the same intended purpose and the same arguments
 ```python
 import timetester
 
@@ -90,7 +90,7 @@ def bar():
 
 @timetester.timeout(seconds=10,error_message=os.strerror(errno.ETIME))  
 
-k= timetester.timeTester(foo, target=1, print_output=False,runtime=100,maxtime=10,error_time=0,return_type='mean)
+k= timetester.timeTester(foo, target=1, print_output=False,runtime=100,maxtime=10,error_time=0,return_type='mean')
 
 
 # compare object arguments must be methods
