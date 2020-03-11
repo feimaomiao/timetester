@@ -2,6 +2,11 @@
 # timetester
 Feed it a method and it tells you the average time.
 
+## Downloads
+`pip install timetester`
+or 
+`python3 -m pip install timetester`
+
 ## Usage
 - Timetester Object
 ```python
