@@ -3,8 +3,8 @@
 Feed it a method and it tells you the average time.
 
 ## Downloads
-`pip install timetester`
-or 
+`pip install timetester`  
+or   
 `python3 -m pip install timetester`
 
 ## Usage
