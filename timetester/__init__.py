@@ -233,7 +233,7 @@ class timeTester():
         plt.ylabel('Seconds')
         # Set x and y limits
         plt.xlim=(0,len(self.__average)*1.01)
-        ylimit = 1.5*float(self.target) if self.target<max(self.__average) else float(max(self.__average)) if max(self.__average)< st.median(self.__average) * 3 else float(st.median(self.__average)) * 3
+        ylimit = float(st.median(self.__average))*3
         # plot target after checking if target>min
         plt.plot(list(range(len(self.__average))), [self.target for x in range(len(self.__average))], color='red', linewidth=1, label="target time") if self.target<= ylimit else None
         # plot ylimit
