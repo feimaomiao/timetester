@@ -186,7 +186,7 @@ class timeTester():
                 # re-raise error
                 raise 
             # Raise timeTesterError if the function took longer than expected
-            if ((time.time()-__starttime) > self.error_time and self.error_time > 0) or (time.time()-__starttime) > self.maxtime:
+            if ((time.time()-__starttime) > self.error_time and self.error_time > 0) or (time.time()-beginning_time) > self.maxtime:
                 self.__totalruntime += (time.time()- beginning_time)
                 self.__errorEncd += 1
                 sys.stdout = sys.__stdout__
