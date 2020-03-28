@@ -9,6 +9,8 @@ import signal
 import sys
 import time
 
+__all__ = ['timeout','timeTesterError','timeTester','compare']
+
 # Main error raised in test_time
 class timeTesterError(Exception):
     pass
