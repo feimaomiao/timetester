@@ -12,7 +12,7 @@ from time import time as _time
 __all__     = ['timeout','timeTesterError','timeTester','compare']
 __author__  = 'Matthew Lam'
 __email__   = 'lcpmatthew@gmail.com'
-__version__ = '1.0.1'
+__version__ = '1.0.1'   
 __license__ = 'MIT'
 
 # Main error raised in test_time
