@@ -6,7 +6,7 @@ with open('README.md', 'r') as fh:
 
 	setuptools.setup(
 	    name="timetester", 
-	    version="1.0.0",
+	    version="1.0.1",
 	    author="Matthew Lam",
 	    author_email="lcpmatthew@gmail.com",
 	    description="Python package to get an average time of your function",
