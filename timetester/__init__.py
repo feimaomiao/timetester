@@ -1,39 +1,42 @@
-from decimal import Decimal as dec
-from errno import ETIME
-from functools import wraps
-import json
-from math import ceil as mathceil
-import os
-import statistics as st
-import signal
-import sys
-import time
+from decimal import Decimal as _dec
+from errno import ETIME as _ETIME
+from functools import wraps as _wraps
+from json import dump as _dump
+from math import ceil as _mathceil
+from os import strerror as _error 
+import statistics as _st
+from signal import signal as _signal, alarm as _alarm, SIGALRM as _SIGALRM
+import sys as _sys
+from time import time as _time 
 
-__all__ = ['timeout','timeTesterError','timeTester','compare']
+__all__     = ['timeout','timeTesterError','timeTester','compare']
+__author__  = 'Matthew Lam'
+__email__   = 'lcpmatthew@gmail.com'
+__version__ = 1.0.0
 
 # Main error raised in test_time
 class timeTesterError(Exception):
     pass
 
 # timeout function wrapper
-def timeout(seconds=10, error_message=os.strerror(ETIME)):
-    def dec(func):
+def timeout(seconds=10, error_message=_error(_ETIME)):
+    def decorator(func):
         if not bool(seconds):
             return func
         def _raise_timeout(signum, frame):
             raise TimeoutError(error_message)
 
         def wrp(*args, **kwargs):
-            signal.signal(signal.SIGALRM, _raise_timeout)
-            signal.alarm(seconds)
+            _signal(_SIGALRM, _raise_timeout)
+            _alarm(seconds)
             try:
                 result = func(*args, **kwargs)
             finally:
-                signal.alarm(0)
+                _alarm(0)
             return result
-        return wraps(func)(wrp)
+        return _wraps(func)(wrp)
 
-    return dec
+    return decorator
 
 """
 time tester object for one function.
@@ -53,13 +56,13 @@ class timeTester():
         self.function   = method
         try:
             self.runtime        = abs(int(runtime))
-            self.target         = dec(abs(target))
-            self.maxtime        = dec(abs(maxtime))
+            self.target         = _dec(abs(target))
+            self.maxtime        = _dec(abs(maxtime))
             self.print_output   = bool(print_output)
             self.type           = return_type
-            self.error_time     = dec(abs(error_time))
+            self.error_time     = _dec(abs(error_time))
             # Private variables
-            self.__errt         = mathceil(error_time)
+            self.__errt         = _mathceil(error_time)
             self.__average      = []
             self.__errorEncd    = 0
             self.__totalruntime = 0
@@ -73,17 +76,17 @@ class timeTester():
     # Return string. Used when you print(timeTester)
         try:
             if self.type == 'mode':
-                return str(dec(st.mode(self.__average)))
+                return str(_dec(_st.mode(self.__average)))
             elif self.type == 'median':
-                return str(dec(st.median(self.__average)))
+                return str(_dec(_st.median(self.__average)))
             elif self.type == 'harmonimean':
-                return str(dec(st.harmonic_mean(self.__average)))
+                return str(_dec(_st.harmonic_mean(self.__average)))
             elif self.type == 'geometricmean':
-                return str(dec(st.geometric_mean(self.__average)))
+                return str(_dec(_st.geometric_mean(self.__average)))
             else:
                 self.type = 'mean'
-                return str(dec(st.mean(self.__average)))
-        except st.StatisticsError as e:
+                return str(_dec(_st.mean(self.__average)))
+        except _st.StatisticsError as e:
             return ('Run a time test before getting its time!')
         else:
             return 'An error occured!'
@@ -106,7 +109,7 @@ class timeTester():
                 raise timeTesterError('One of the objects has not been tested!')
         except AttributeError:
             pass
-        return round(dec(self.__repr__()),6) == round(dec(other.__repr__()),6)
+        return round(_dec(self.__repr__()),6) == round(_dec(other.__repr__()),6)
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -119,7 +122,7 @@ class timeTester():
                 raise timeTesterError('One of the objects has not been tested!')
         except AttributeError:
             pass
-        return round(dec(self.__repr__()),6)< round(dec(other.__repr__()),6)
+        return round(_dec(self.__repr__()),6)< round(_dec(other.__repr__()),6)
 
     def __gt__(self,other):
         if not isinstance(other, (timeTester, int, float, dec)):
@@ -129,7 +132,7 @@ class timeTester():
                 raise timeTesterError('One of the objects has not been tested!')
         except AttributeError:
             pass
-        return round(dec(self.__repr__()),6)> round(dec(other.__repr__()),6)
+        return round(_dec(self.__repr__()),6)> round(_dec(other.__repr__()),6)
 
     def __ge__(self, other):
         return not self.__lt__(other)
@@ -151,54 +154,54 @@ class timeTester():
         try:
             # Checks if variables are assigned to the correct type
             self.runtime        = round(int(self.runtime))
-            self.target         = dec(abs(self.target))
-            self.maxtime        = dec(abs(self.maxtime))
+            self.target         = _dec(abs(self.target))
+            self.maxtime        = _dec(abs(self.maxtime))
             self.print_output   = bool(self.print_output)
-            self.error_time     = dec(abs(self.error_time))
-            self.__errt         = mathceil(self.error_time)
+            self.error_time     = _dec(abs(self.error_time))
+            self.__errt         = _mathceil(self.error_time)
         except ValueError:
             raise timeTesterError('Please make sure the variables are assigned properly') from ValueError
 
          # redirects stdout to a text trap if user decides not to print outputs
         if not self.print_output:
-            sys.stdout = None
+            _sys.stdout = None
          # Check how many runs should be ran
         self.__runs += self.runtime
-        beginning_time = time.time()
+        beginning_time = _time()
          # initialises signal and error
-        signal.signal(signal.SIGALRM, __raise_error)
+        _signal(_SIGALRM, __raise_error)
         for i in range(self.runtime):
-            __starttime= time.time()
+            __starttime= _time()
             try:
                 # Set alarm time
-                signal.alarm(self.__errt)
+                _alarm(self.__errt)
                 # Runs function
                 self.function(*args,**kwargs)
-                __endtime = time.time()
+                __endtime = _time()
                 # Ends the alarm, prevents from raising error
-                signal.alarm(0)    
+                _alarm(0)    
             except Exception as e:
                 # Function raised an error
                 # Redirect print function back to normal
-                sys.stdout = sys.__stdout__
+                _sys.stdout = _sys.__stdout__
                 # Add total run time
-                self.__totalruntime += (time.time()- beginning_time)
+                self.__totalruntime += (_time()- beginning_time)
                 self.__errorEncd += 1
-                signal.alarm(0)
+                _alarm(0)
                 # re-raise error
                 raise 
             # Raise timeTesterError if the function took longer than expected
-            if ((time.time()-__starttime) > self.error_time and self.error_time > 0) or (time.time()-beginning_time) > self.maxtime:
-                self.__totalruntime += (time.time()- beginning_time)
+            if ((_time()-__starttime) > self.error_time and self.error_time > 0) or (_time()-beginning_time) > self.maxtime:
+                self.__totalruntime += (_time()- beginning_time)
                 self.__errorEncd += 1
-                sys.stdout = sys.__stdout__
+                _sys.stdout = _sys.__stdout__
                 return __raise_error(signum=None, frame=None)
             # Adds average to total runtime list
             self.__average.append(__endtime-__starttime)
          # Adds total runtime of function
-        self.__totalruntime += (time.time()- beginning_time)
+        self.__totalruntime += (_time()- beginning_time)
          # redirects print to stdout
-        sys.stdout = sys.__stdout__
+        _sys.stdout = _sys.__stdout__
          # Returns the time the function took
         del beginning_time, __endtime, __starttime
         return self
@@ -227,7 +230,7 @@ class timeTester():
         # plot function itme
         plt.plot(list(range(len(self.__average))), self.__average, color = 'darkblue', linewidth=1, label="Actual time")
          # Gets user averages
-        actualaverage = st.mode(self.__average) if self.type == 'mode' else st.median(self.__average) if self.type == 'median' else st.harmonic_mean(self.__average) if self.type=='harmonimean' else st.geometric_mean(self.__average) if self.type == 'geometricmean' else st.mean(self.__average)
+        actualaverage = _st.mode(self.__average) if self.type == 'mode' else _st.median(self.__average) if self.type == 'median' else _st.harmonic_mean(self.__average) if self.type=='harmonimean' else _st.geometric_mean(self.__average) if self.type == 'geometricmean' else _st.mean(self.__average)
         # Plots average
         plt.plot(list(range(len(self.__average))), [actualaverage for x in range(len(self.__average))], color='green',linewidth=1, label=f"{self.type} average")
         # Set x and y labels
@@ -235,7 +238,7 @@ class timeTester():
         plt.ylabel('Seconds')
         # Set x and y limits
         plt.xlim=(0,len(self.__average)*1.01)
-        ylimit = float(st.median(self.__average))*3
+        ylimit = float(_st.median(self.__average))*3
         # plot target after checking if target>min
         plt.plot(list(range(len(self.__average))), [self.target for x in range(len(self.__average))], color='red', linewidth=1, label="target time") if self.target<= ylimit else None
         # plot ylimit
@@ -258,24 +261,24 @@ Successful runs     : {len(self.__average)}
 Total time elapsed  : {self.__totalruntime}
 Total errors        : {self.__errorEncd}
 repr type           : {self.type}
-Mean time           : {str(dec(st.mean(self.__average)))}
-Median time         : {str(dec(st.median(self.__average)))}
-Mode time           : {str(dec(st.median(self.__average)))}
-Mode time appearance: {self.__average.count(dec(st.median(self.__average)))}
-Harmonic mean time  : {str(dec(st.harmonic_mean(self.__average)))}
-Geometric mean time : {str(dec(st.geometric_mean(self.__average)))}
-Meeting Target      : {dec(st.mean(self.__average))< self.target}
-To target(mean)(abs): {abs(self.target-dec(st.mean(self.__average)))}
-To target           : {(self.target-dec(st.mean(self.__average)))}
+Mean time           : {str(_dec(_st.mean(self.__average)))}
+Median time         : {str(_dec(_st.median(self.__average)))}
+Mode time           : {str(_dec(_st.median(self.__average)))}
+Mode time appearance: {self.__average.count(_dec(_st.median(self.__average)))}
+Harmonic mean time  : {str(_dec(_st.harmonic_mean(self.__average)))}
+Geometric mean time : {str(_dec(_st.geometric_mean(self.__average)))}
+Meeting Target      : {_dec(_st.mean(self.__average))< self.target}
+To target(mean)(abs): {abs(self.target-_dec(_st.mean(self.__average)))}
+To target           : {(self.target-_dec(_st.mean(self.__average)))}
 Max time in run     : {max(self.__average)}
 Max time index      : {self.__average.index(max(self.__average))}
 Max time appearance : {self.__average.count(max(self.__average))}
 Min time in run     : {min(self.__average)}
 Min time index      : {self.__average.index(min(self.__average))}
 Min time appearance : {self.__average.count(min(self.__average))}'''
-        except st.StatisticsError:
+        except _st.StatisticsError:
             # When user returned report before running tests
-            raise timeTesterError('Please run tests before reporting!') from st.StatisticsError
+            raise timeTesterError('Please run tests before reporting!') from _st.StatisticsError
         print(self.__returnString)
         return self
 
@@ -352,8 +355,8 @@ class compare():
 
     # Check and return the mean function.
     def __meanfunc(self, ll):
-        l = {'mode': st.mode, 'median': st.median, 'harmonicmean':st.harmonic_mean, 'geometricmean':st.geometric_mean}
-        return lambda: l.get(self.meantype, st.mean)(ll)
+        l = {'mode': _st.mode, 'median': _st.median, 'harmonicmean':_st.harmonic_mean, 'geometricmean':_st.geometric_mean}
+        return lambda: l.get(self.meantype, _st.mean)(ll)
 
    # Run compare functions
     def compareFuncs(self, *args, **kwargs):
@@ -365,12 +368,12 @@ class compare():
             self.runtime    = abs(int(self.runtime))
             self.looptime   = abs(int(self.looptime))
             self.print      = bool(self.print)
-            self.errortime  = abs(dec(self.errortime))
+            self.errortime  = abs(_dec(self.errortime))
          # ValueError is derived if the value is not an intended value
         except ValueError:
             self.__encErr = True
             raise timeTesterError('Please make sure your variables are set correspondingly') from ValueError
-         # Runs for looptime times
+         # Runs for loop_time()s
         for runs in range(self.looptime):
             for funcs in self.__methods:
                 # Create methodtime object
@@ -409,7 +412,7 @@ class compare():
 
     def sort(self):
         for k,v in self.speedtime.items():
-            print(f'{k:10}||{round(dec(v),20):20}')
+            print(f'{k:10}||{round(_dec(v),20):20}')
         return self
 
     def output_as_file(self):
@@ -418,7 +421,7 @@ class compare():
             raise timeTesterError('You have an error encountered')
         if any([x == 0 for x in self.speedtime.values()]):
             raise timeTesterError('Please run tests before outputing as file')
-        json.dump(self.speedtime, open('timetest_report.json', 'w'))
+        _dump(self.speedtime, open('timetest_report.json', 'w'))
         return self
 
     def graph(self):
