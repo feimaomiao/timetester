@@ -6,7 +6,7 @@ with open('README.md', 'r') as fh:
 
 	setuptools.setup(
 	    name="timetester", 
-	    version="1.0.1",
+	    version="1.1.0",
 	    author="Matthew Lam",
 	    author_email="lcpmatthew@gmail.com",
 	    description="Python package to get an average time of your function",
@@ -14,6 +14,7 @@ with open('README.md', 'r') as fh:
 	    long_description_content_type="text/markdown",
 	    url="https://github.com/feimaomiao/timetester",
 	    packages=setuptools.find_packages(),
+	    install_requires=['matplotlib'],
 	    classifiers=[
 	        "Programming Language :: Python :: 3",
 	        "License :: OSI Approved :: MIT License",
